@@ -130,15 +130,20 @@ def test_video(input_file, output_file):
     darknet_image = darknet.make_image(darknet_size[0], darknet_size[1], 3)
 
     # Generating video output.
-    output_video = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'MJPG'), 10.0, (width, height))
+    codec = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')
+    framerate = 30
+    resolution = (width, height)
+    output_video = cv2.VideoWriter(output_file, codec, framerate, resolution)
 
-    count = 0
-    while count != length:
-        _, frame = capture.read()
+    if capture.isOpened():
+        ret, frame = capture.read()
+    
+    console = '.'
+    while ret:
+        ret, frame = capture.read()
         result_frame = detect_video(frame, (width, height), darknet_model, darknet_meta, darknet_image, darknet_size)
         output_video.write(frame)
-        count += 1
-        print(f'Frame {count}')
+        print(console + console)
 
     capture.release()
     output_video.release()
@@ -150,5 +155,5 @@ if __name__ == "__main__":
     # result = detect_people(image)
     # cv2.imwrite('result.jpg', result)
 
-    test_video('test/test3.mp4', 'result.avi')
+    test_video('test/test4.mp4', 'result.mp4')
 
