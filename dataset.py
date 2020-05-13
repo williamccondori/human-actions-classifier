@@ -90,7 +90,7 @@ def detect_video(frame, frame_size, darknet_model, darknet_meta, darknet_image, 
 
             # Add indicators.
             cv2.rectangle(frame, start_point, end_point, (0,255,0), 1)
-            # cv2.putText(frame, class_id, bounding_box[0], bounding_box[0] - 5, cv2.FONT_HERSHEY_SIMPLEX, .4, (0,255,0), 1)
+            cv2.putText(frame, f'{class_id}: {confidence}', (bounding_box[0], bounding_box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, .2, (0,255,0), 1)
 
     result = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     return result
