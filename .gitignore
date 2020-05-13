@@ -1,5 +1,9 @@
 .vscode
 
+__pycache__
+
 images/
 
 venv
+
+yolov4.weights
