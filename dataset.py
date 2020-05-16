@@ -7,12 +7,14 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def convert(bounding_box):
     x_min = int(round(bounding_box[0] - (bounding_box[2] / 2)))
     x_max = int(round(bounding_box[0] + (bounding_box[2] / 2)))
     y_min = int(round(bounding_box[1] - (bounding_box[3] / 2)))
     y_max = int(round(bounding_box[1] + (bounding_box[3] / 2)))
     return (x_min, y_min, x_max, y_max)
+
 
 def rescale(frame_size, draknet_size, bounding_box):
     factor_x = frame_size[0] / draknet_size[0]
@@ -23,6 +25,7 @@ def rescale(frame_size, draknet_size, bounding_box):
     y_max = int(bounding_box[3] * factor_y)
     return (x_min, y_min, x_max, y_max)
 
+
 def detect_people(image):
     inputi = image
 
@@ -31,12 +34,15 @@ def detect_people(image):
     data_file = 'data/coco.data'
 
     height, width, _ = image.shape
-    
-    network = darknet.load_net_custom(config_file.encode('ascii'), weights_file.encode('ascii'), 0, 1)
+
+    network = darknet.load_net_custom(config_file.encode(
+        'ascii'), weights_file.encode('ascii'), 0, 1)
 
     meta = darknet.load_meta(data_file.encode('ascii'))
-    darknet_image = darknet.make_image(darknet.network_width(network), darknet.network_height(network),3)
-    image = cv2.resize(image, (darknet.network_width(network), darknet.network_height(network)), interpolation=cv2.INTER_LINEAR)
+    darknet_image = darknet.make_image(darknet.network_width(
+        network), darknet.network_height(network), 3)
+    image = cv2.resize(image, (darknet.network_width(
+        network), darknet.network_height(network)), interpolation=cv2.INTER_LINEAR)
     wi = darknet.network_width(network)
     he = darknet.network_height(network)
     darknet.copy_image_from_bytes(darknet_image, image.tobytes())
@@ -48,7 +54,8 @@ def detect_people(image):
         item = item.decode('utf-8')
         if item == 'person':
             print(f'{item} {confidence}')
-            result = convert(bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3])
+            result = convert(
+                bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3])
             # xc + rx(xo -xc)
             rx = width / wi
             ry = height / he
@@ -56,23 +63,25 @@ def detect_people(image):
             ymin = result[1] * ry
             xmax = result[2] * rx
             ymax = result[3] * ry
-            cv2.rectangle(inputi,(int(xmin), int(ymin)), (int(xmax), int(ymax)), (0,255,0), 1)
-            cv2.putText(inputi, item, (int(xmin), int(ymin) - 5), 
-                        cv2.FONT_HERSHEY_SIMPLEX, .4, (0,255,0), 1)
+            cv2.rectangle(inputi, (int(xmin), int(ymin)),
+                          (int(xmax), int(ymax)), (0, 255, 0), 1)
+            cv2.putText(inputi, item, (int(xmin), int(ymin) - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, .4, (0, 255, 0), 1)
 
     result = cv2.cvtColor(inputi, cv2.COLOR_BGR2RGB)
     return result
 
 
-
 def detect_video(frame, frame_size, darknet_model, darknet_meta, darknet_image, darknet_size, log=False):
 
     # Load darknet image.
-    frame_resized = cv2.resize(frame, darknet_size, interpolation=cv2.INTER_LINEAR)
+    frame_resized = cv2.resize(
+        frame, darknet_size, interpolation=cv2.INTER_LINEAR)
     darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
 
     # Detect.
-    results = darknet.detect_image(darknet_model, darknet_meta, darknet_image, thresh=0.25)
+    results = darknet.detect_image(
+        darknet_model, darknet_meta, darknet_image, thresh=0.25)
 
     for result in results:
         class_id, confidence, bounding_box = result
@@ -89,11 +98,13 @@ def detect_video(frame, frame_size, darknet_model, darknet_meta, darknet_image, 
             end_point = (bounding_box[2], bounding_box[3])
 
             # Add indicators.
-            cv2.rectangle(frame, start_point, end_point, (0,255,0), 1)
-            cv2.putText(frame, f'{class_id}: {confidence}', (bounding_box[0], bounding_box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, .2, (0,255,0), 1)
+            cv2.rectangle(frame, start_point, end_point, (0, 255, 0), 1)
+            cv2.putText(frame, f'{class_id}: {confidence}', (
+                bounding_box[0], bounding_box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, .2, (0, 255, 0), 1)
 
     result = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     return result
+
 
 def main():
     video_file_path = 'C:/Users/William/Downloads/biisc/biisc/videos'
@@ -124,9 +135,11 @@ def test_video(input_file, output_file):
 
     # Init YOLO model (COCO).
     darknet_meta = darknet.load_meta('data/coco.data'.encode('ascii'))
-    darknet_model = darknet.load_net_custom('cfg/yolov4.cfg'.encode('ascii'), 'yolov4.weights'.encode('ascii'), 0, 1)
+    darknet_model = darknet.load_net_custom(
+        'cfg/yolov4.cfg'.encode('ascii'), 'yolov4.weights'.encode('ascii'), 0, 1)
 
-    darknet_size = (darknet.network_width(darknet_model), darknet.network_height(darknet_model))
+    darknet_size = (darknet.network_width(darknet_model),
+                    darknet.network_height(darknet_model))
     darknet_image = darknet.make_image(darknet_size[0], darknet_size[1], 3)
 
     # Generating video output.
@@ -137,16 +150,18 @@ def test_video(input_file, output_file):
 
     if capture.isOpened():
         ret, frame = capture.read()
-    
+
     console = '.'
     while ret:
         ret, frame = capture.read()
-        result_frame = detect_video(frame, (width, height), darknet_model, darknet_meta, darknet_image, darknet_size)
+        result_frame = detect_video(
+            frame, (width, height), darknet_model, darknet_meta, darknet_image, darknet_size)
         output_video.write(frame)
         print(console + console)
 
     capture.release()
     output_video.release()
+
 
 if __name__ == "__main__":
     # image = Image.open('test/S020_F_COUG_WLK_RGT_HF_17.jpg')
@@ -156,4 +171,3 @@ if __name__ == "__main__":
     # cv2.imwrite('result.jpg', result)
 
     test_video('test/test4.mp4', 'result.mp4')
-
