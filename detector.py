@@ -1,6 +1,8 @@
 import os
 import cv2
+import helpers as hp
 import darknet
+
 
 def detector(image, image_size, darknet_model, darknet_meta, darknet_image, darknet_size, log=False):
 
@@ -20,10 +22,10 @@ def detector(image, image_size, darknet_model, darknet_meta, darknet_image, dark
             if log:
                 print(f'{class_id}: {confidence}')
             # Convert from YOLO format.
-            bounding_box = convert(bounding_box)
+            bounding_box = hp.convert(bounding_box)
 
             # Rescaling the bounding boxes.
-            bounding_box = rescale(image_size, darknet_size, bounding_box)
+            bounding_box = hp.rescale(image_size, darknet_size, bounding_box)
             start_point = (bounding_box[0], bounding_box[1])
             end_point = (bounding_box[2], bounding_box[3])
 
