@@ -8,7 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
 def detect_people(image):
     inputi = image
 
@@ -89,6 +88,46 @@ def detect_video(frame, frame_size, darknet_model, darknet_meta, darknet_image, 
     return result
 
 
+def detect_person(folder):
+
+    config_file = 'cfg/yolov4.cfg'
+    weights_file = 'yolov4.weights'
+    data_file = 'data/coco.data'
+
+    network = darknet.load_net_custom(config_file.encode(
+        'ascii'), weights_file.encode('ascii'), 0, 1)
+
+    meta = darknet.load_meta(data_file.encode('ascii'))
+    darknet_image = darknet.make_image(darknet.network_width(
+        network), darknet.network_height(network), 3)
+
+    wi = darknet.network_width(network)
+    he = darknet.network_height(network)
+
+    for image_file_name in os.listdir(folder):
+        image = Image.open(f'{folder}/{image_file_name}')
+        height, width, _ = image.shape
+        image = cv2.resize(image, (darknet.network_width(
+            network), darknet.network_height(network)), interpolation=cv2.INTER_LINEAR)
+
+        darknet.copy_image_from_bytes(darknet_image, image.tobytes())
+        results = darknet.detect_image(
+            network, meta, darknet_image, thresh=0.25)
+        for result in results:
+            class_id, confidence, bounding_box = result
+            class_id = class_id.decode('utf-8')
+            if class_id == 'person':
+                print(f'{class_id}: {confidence}')
+                # Convert from YOLO format.
+                bounding_box = convert(bounding_box)
+
+                # Rescaling the bounding boxes.
+                box = rescale(frame_size, darknet_size, bounding_box)
+                
+                person = image[box[1]:box[3],box[0]:box[2]]
+                print(person)
+
+
 def main():
     video_file_path = 'C:/Users/William/Downloads/biisc/biisc/videos'
     for video_file_name in os.listdir(video_file_path):
@@ -153,4 +192,5 @@ if __name__ == "__main__":
     # result = detect_people(image)
     # cv2.imwrite('result.jpg', result)
 
-    test_video('test/test4.mp4', 'result.mp4')
+    # test_video('test/test4.mp4', 'result.mp4')
+    main()
